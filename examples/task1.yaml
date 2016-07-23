@@ -1,0 +1,21 @@
+task1:
+
+cores_required: 2
+
+execution_time: 100
+
+task2:
+
+cores_required: 1
+
+execution_time: 200
+
+parent_tasks: task1
+
+task3:
+
+cores_required: 4
+
+execution_time: 50
+
+parent_tasks: "task1, task2"
