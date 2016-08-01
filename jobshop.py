@@ -15,13 +15,17 @@ class Task:
         self.finishTime = 0
 
     def leafP(self):
-        return self.childTasks
+        return not self.childTasks
 
     def rootP(self):
-        return self.parentTasks
+        return not self.parentTasks
 
     def __repr__(self):
-        return "<Task %s, coresR %s, eTime %s, pTasks %s, cTasks %s>" % (self.name,self.coresRequired,self.executionTime,[t.name for t in self.parentTasks],[t.name for t in self.childTasks])
+        return "<Task %s, coresR %s, eTime %s, pTasks %s, cTasks %s, mp %s>" % (
+        self.name,self.coresRequired,self.executionTime,
+        [t.name for t in self.parentTasks],
+        [t.name for t in self.childTasks],
+        self.maxPath)
 
 
 class Machine:
@@ -65,6 +69,9 @@ class Scheduler:
         self.machines.sort(key=lambda m: m.coresAvailable)
 
         self.tasks = self.createTasks(tasksfile)
+        self.backflow(self.tasks)
+        self.tasks.sort(key=lambda t: t.maxPath)
+        self.tasks.reverse()
 
 
     def createMachines(self,filename):
@@ -101,6 +108,23 @@ class Scheduler:
                 newParents.append(self.tasksDict[p])
             t.parentTasks = newParents
 
+    def backflow(self,tasks):
+        """implements the backflow algorithm which labels each task with the
+        longest path from it to a leaf"""
+        for t in tasks:
+            if t.leafP():
+                t.maxPath = t.executionTime
+                self.bf(t)
+    def bf(self,task):
+        """recursive part of backflow implementation"""
+        if task.rootP():
+            return
+        else:
+            for p in task.parentTasks:
+                m = task.maxPath + p.executionTime
+                if m > p.maxPath:
+                    p.maxPath = m
+                self.bf(p)
 
 
 if __name__ == "__main__":
