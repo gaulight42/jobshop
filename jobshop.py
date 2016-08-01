@@ -38,40 +38,29 @@ class Machine:
     def __repr__(self):
         return "<Machine: name: %s, cores: %s, available %s>" % (self.name, self.cores, self.coresAvailable)
 
-class SchedState:
-    """Hold information about a state where a schedule is a list of such states"""
-    def __init__(self):
-        self.time = 0
-        self.priorityList = [] #tasks ordered by priority based on critical path algorithm
-        self.tasksRunning = [] # list of tasks sorted by finishtime
-        self.machines     = [] # list of Machine objects sorted by coresAvailable in ascending order
-
-    def setupStartState(self,priorityList,machines):
-        pass
-
-    def nextState(self,currentState):
-        pass
-
-
 class Scheduler:
     """Outer class that holds all the bits of the problem, intermediate
     states, and relevant functions"""
     def __init__(self):
-        self.machines = []
-        self.tasks = []
+        self.machines = [] # sorted by coresAvailable, least first
+        self.tasks = [] # sorted by maxPath, longest first
+        self.tasksRunning = [] # list of tasks sorted by finishtime
         self.tasksDict = {} # enable fast access based on name
-        self.Schedule = [] # list of (task,startTime,endTime,machine,cores)
+        self.scheduleSteps = [] # list of (task,startTime,endTime,machine,cores)
+        self.currentTime = 0
 
     def schedule(self,tasksfile,machinesfile):
         """Outermost function that reads in task and machines YAML files and
-        then fires off the scheduling algorithm"""
+        then fires off the scheduling algorithm; results go in scheduleSteps"""
         self.machines = self.createMachines(machinesfile)
         self.machines.sort(key=lambda m: m.coresAvailable)
 
         self.tasks = self.createTasks(tasksfile)
         self.backflow(self.tasks)
         self.tasks.sort(key=lambda t: t.maxPath)
-        self.tasks.reverse()
+        self.tasks.reverse() # the tasks are now in a priority list based on length of critical path
+
+        self.createSchedule()
 
 
     def createMachines(self,filename):
@@ -126,11 +115,15 @@ class Scheduler:
                     p.maxPath = m
                 self.bf(p)
 
+    def createSchedule(self):
+        pass
+
 
 if __name__ == "__main__":
     s = Scheduler()
     s.schedule("jobshop/examples/task1.yaml","jobshop/examples/machines1.yaml")
     print s.machines
     print s.tasks
+    print s.scheduleSteps
 
 
