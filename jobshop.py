@@ -10,9 +10,12 @@ class Task:
         self.parentTasks   = pTasks # a list of strings
         self.childTasks = [] # a list of Task objects
         self.maxPath = 0
-        self.readyToRun = 0
         self.startTime = 0
         self.finishTime = 0
+        if self.rootP():
+            self.readyToRun = 1
+        else:
+            self.readyToRun = 0
 
     def leafP(self):
         return not self.childTasks
@@ -116,6 +119,7 @@ class Scheduler:
                 self.bf(p)
 
     def createSchedule(self):
+        """check if ready to run; some sort of while loop that ends when all tasks are finished"""
         pass
 
 
