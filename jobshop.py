@@ -119,7 +119,7 @@ class Scheduler:
                 self.bf(p)
 
     def createSchedule(self):
-        """check if ready to run; some sort of while loop that ends when all tasks are finished"""
+        """check if ready to run; some sort of while loop that ends when task list is empty"""
         pass
 
 
