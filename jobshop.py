@@ -139,7 +139,7 @@ class Scheduler:
             tf = self.tasksRunning.pop()
             self.tasks.remove(tf)
             self.currentTime = tf.finishTime
-            tf.machine.coreAvailable += tf.coresRequired
+            tf.machine.coresAvailable += tf.coresRequired
             for k in tf.childTasks:
                 k.parentTasks.remove(tf)
                 if not k.parentTasks: k.readyToRun = 1
