@@ -12,6 +12,7 @@ class Task:
         self.maxPath = 0
         self.startTime = 0
         self.finishTime = 0
+        self.machine = None # an instance of Machine
         if self.rootP():
             self.readyToRun = 1
         else:
@@ -49,7 +50,7 @@ class Scheduler:
         self.tasks = [] # sorted by maxPath, longest first
         self.tasksRunning = [] # list of tasks sorted by finishtime
         self.tasksDict = {} # enable fast access based on name
-        self.scheduleSteps = [] # list of (task,startTime,endTime,machine,cores)
+        self.scheduleSteps = [] # list of (taskName,startTime,endTime,machineName,cores)
         self.currentTime = 0
 
     def schedule(self,tasksfile,machinesfile):
@@ -119,9 +120,54 @@ class Scheduler:
                 self.bf(p)
 
     def createSchedule(self):
-        """check if ready to run; some sort of while loop that ends when task list is empty"""
-        pass
+        """Driver of the scheduling algorithm which starts with all
+        the tasks sorted by length of longest path to a leaf from that task,
+        the root tasks are marked as ready,
+        and the machines sorted in ascending order by number of available cores.
+        Schedule as many ready tasks in the list (put on tasksRunning list)
+        Then a loop is executed until all the tasks are finished and removed from the list.
+        The loop consists of the following steps...
+          pop the first task, tf, off tasksRunning list (which is the next to finish)
+          remove it from the tasks list
+          set currentTime to tf.finishTime
+          free up cores on machine that is running the task
+          take tf off the dependencies of its children and mark them as runable if there are no more dependencies
+          schedule as many ready tasks in the list
+          """
+        self.scheduleReadyTasksOnAvailableMachines()
+        while (self.tasks != []):
+            tf = self.tasksRunning.pop()
+            self.tasks.remove(tf)
+            self.currentTime = tf.finishTime
+            tf.machine.coreAvailable += tf.coresRequired
+            for k in tf.childTasks:
+                k.parentTasks.remove(tf)
+                if not k.parentTasks: k.readyToRun = 1
+            self.scheduleReadyTasksOnAvailableMachines()
 
+
+
+    def scheduleReadyTasksOnAvailableMachines(self):
+        """Schedule all the ready tasks that can be scheduled.
+        loop through tasks list looking for ready tasks
+        for each ready task run it if there is an available machine
+          update the task, the machine, machines, tasksRunning, scheduleSteps
+        """
+        for t in self.tasks:
+            if (t.readyToRun and self.findMachine(t.coresRequired)):
+                t.machine = self.findMachine(t.coresRequired)
+                t.startTime = self.currentTime
+                t.finishTime = t.startTime + t.executionTime
+                t.machine.coresAvailable -= t.coresRequired
+                self.machines.sort(key=lambda m: m.coresAvailable)
+                self.tasksRunning.append(t)
+                self.tasksRunning.sort(key=lambda s: s.finishTime)
+                self.scheduleSteps.append((t.name,t.startTime,t.finishTime,
+                t.machine.name,t.coresRequired))
+
+    def findMachine(self,crequired):
+        i = (m for m in self.machines if m.coresAvailable >= crequired)
+        return next(i,None)
 
 if __name__ == "__main__":
     s = Scheduler()
