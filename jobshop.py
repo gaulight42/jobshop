@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.7
 import yaml
+import argparse
 
 class Task:
     """Hold information about a task"""
@@ -13,6 +14,7 @@ class Task:
         self.startTime = 0
         self.finishTime = 0
         self.machine = None # an instance of Machine
+        self.running = 0
         if self.rootP():
             self.readyToRun = 1
         else:
@@ -136,7 +138,7 @@ class Scheduler:
           """
         self.scheduleReadyTasksOnAvailableMachines()
         while (self.tasks != []):
-            tf = self.tasksRunning.pop()
+            tf = self.tasksRunning.pop(0)
             self.tasks.remove(tf)
             self.currentTime = tf.finishTime
             tf.machine.coresAvailable += tf.coresRequired
@@ -154,7 +156,8 @@ class Scheduler:
           update the task, the machine, machines, tasksRunning, scheduleSteps
         """
         for t in self.tasks:
-            if (t.readyToRun and self.findMachine(t.coresRequired)):
+            if (t.readyToRun and not t.running and self.findMachine(t.coresRequired)):
+                t.running = 1
                 t.machine = self.findMachine(t.coresRequired)
                 t.startTime = self.currentTime
                 t.finishTime = t.startTime + t.executionTime
@@ -170,10 +173,16 @@ class Scheduler:
         return next(i,None)
 
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("taskFilename", help="YAML task filename")
+    parser.add_argument("machineFilename", help="YAML machine filename")
+    args = parser.parse_args()
+
     s = Scheduler()
-    s.schedule("jobshop/examples/task1.yaml","jobshop/examples/machines1.yaml")
-    print s.machines
-    print s.tasks
+    s.schedule(args.taskFilename,args.machineFilename)
+    #print s.machines
+    #print s.tasks
     print s.scheduleSteps
 
 

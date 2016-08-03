@@ -1,0 +1,59 @@
+t1:
+    cores_required: 2
+    execution_time: 4
+    parent_tasks: {}
+
+t2:
+    cores_required: 1
+    execution_time: 5
+    parent_tasks: {}
+
+t3:
+    cores_required: 4
+    execution_time: 11
+    parent_tasks: {}
+
+t4:
+    cores_required: 4
+    execution_time: 3
+    parent_tasks: {}
+
+t5:
+    cores_required: 4
+    execution_time: 8
+    parent_tasks:
+        t1:
+        t2:
+
+t6:
+    cores_required: 4
+    execution_time: 10
+    parent_tasks:
+        t2:
+
+t7:
+    cores_required: 2
+    execution_time: 6
+    parent_tasks:
+        t3:
+
+t8:
+    cores_required: 2
+    execution_time: 7
+    parent_tasks:
+        t6:
+        t7:
+
+t9:
+    cores_required: 4
+    execution_time: 9
+    parent_tasks:
+        t5:
+
+t10:
+    cores_required: 2
+    execution_time: 2
+    parent_tasks:
+        t5:
+        t8:
+
